@@ -1,123 +1,225 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-export const RetroWaveLanding = () => {
+export const SurrealistLanding = () => {
+  const canvasRef = useRef(null);
+  
+  // Refined color palette
   const colors = {
     cream: '#F5E6D3',
-    coral: '#FF6B6B',
-    navy: '#2D3047',
-    orange: '#FF9F1C',
-    skyBlue: '#A8E0FF',
-    sunset: '#FF9671', // Added new colors
-    oceanBlue: '#48ABC9',
-    // New psychedelic sunset colors
-    purple: '#9B6EDC',
-    deepPink: '#FF1B6B',
-    goldenYellow: '#FFD93D',
-    magenta: '#FF00FF',
-    // Updated vintage psychedelic palette
-    sage: '#96A886',
-    terracotta: '#C76D4E',
+    azure: '#48ABC9',
+    coral: '#FF9671',
     sand: '#D4B483',
-    mint: '#9DC9B8',
-    dustyRose: '#C98986',
-    mustard: '#D4A373',
-    retroBlue: '#4B99D0',
-    retroOrange: '#E85D24',
-    retroCream: '#F7E5A4',
+    lavender: '#9B6EDC',
+    mint: '#9DC9B8'
   };
 
-  return (
-    <div className="fixed inset-0 bg-gradient-to-b from-terracotta via-sand to-skyBlue overflow-hidden">
-      {/* Sun */}
-      <motion.div
-        className="absolute w-48 h-48 rounded-full bg-orange"
-        style={{
-          top: '15%',
-          right: '10%',
-          boxShadow: '0 0 100px rgba(255, 159, 28, 0.6)',
-        }}
-        animate={{
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-      {/* Ocean waves - replacing your original circular waves */}
-      {[...Array(5)].map((_, i) => (
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class PaintDrop {
+      constructor(x, y, isHover = false) {
+        this.x = x;
+        this.y = y;
+        // Increased size for better visibility
+        this.size = isHover ? 25 : Math.random() *20 + 5;
+        this.maxSize = this.size * (isHover ? 8 : 4);
+        this.color = Object.values(colors)[Math.floor(Math.random() * Object.values(colors).length)];
+        // Adjusted speeds for more noticeable movement
+        this.speedY = isHover ? (Math.random() * 2 - 1) : -Math.random() * 0.3;
+        this.speedX = isHover ? (Math.random() * 2 - 1) : (Math.random() - 0.5) * 0.5;
+        this.age = 0;
+        this.maxAge = 300; // Reduced for quicker fade
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+        this.points = this.generateOrganic();
+        this.wobble = Math.random() * 0.1;
+        this.time = Math.random() * 100;
+      }
+
+      generateOrganic() {
+        const points = [];
+        const numPoints = 12;
+        for (let i = 0; i < numPoints; i++) {
+          const angle = (i / numPoints) * Math.PI * 2;
+          points.push({
+            angle,
+            variance: 0.8 + Math.random() * 0.4,
+            wobbleSpeed: Math.random() * 0.05,
+            offset: Math.random() * Math.PI * 2
+          });
+        }
+        return points;
+      }
+
+      update() {
+        this.age++;
+        this.time += 0.03;
+        this.size = Math.min(this.size * 1.02, this.maxSize);
+        this.x += this.speedX + Math.sin(this.time) * this.wobble;
+        this.y += this.speedY;
+        this.rotation += this.rotationSpeed;
+      }
+
+      draw(ctx) {
+        const alpha = Math.max(0, 1 - (this.age / this.maxAge));
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+
+        ctx.beginPath();
+        this.points.forEach((point, i) => {
+          const currentVariance = point.variance + 
+            Math.sin(this.time * point.wobbleSpeed + point.offset) * 0.2;
+          const radius = this.size * currentVariance;
+          const x = Math.cos(point.angle) * radius;
+          const y = Math.sin(point.angle) * radius;
+          
+          if (i === 0) ctx.moveTo(x, y);
+          else {
+            const prevPoint = this.points[(i - 1 + this.points.length) % this.points.length];
+            const prevRadius = this.size * prevPoint.variance;
+            const prevX = Math.cos(prevPoint.angle) * prevRadius;
+            const prevY = Math.sin(prevPoint.angle) * prevRadius;
+            
+            const cpX = (x + prevX) / 2;
+            const cpY = (y + prevY) / 2;
+            ctx.quadraticCurveTo(cpX, cpY, x, y);
+          }
+        });
+        ctx.closePath();
+
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 1.5);
+        gradient.addColorStop(0, `${this.color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`);
+        gradient.addColorStop(0.5, `${this.color}${Math.floor(alpha * 127).toString(16).padStart(2, '0')}`);
+        gradient.addColorStop(1, `${this.color}00`);
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      isDead() {
+        return this.age >= this.maxAge;
+      }
+    }
+
+    let drops = [];
+
+    function animate() {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drops.forEach(drop => {
+        drop.update();
+        drop.draw(ctx);
+      });
+
+      drops = drops.filter(drop => !drop.isDead());
+
+      // Background drops
+      if (Math.random() < 0.03) {
+        drops.push(new PaintDrop(
+          Math.random() * canvas.width,
+          canvas.height + 20
+        ));
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+    
+    // Enhanced mouse interaction
+    let isMouseDown = false;
+
+    canvas.addEventListener('mousedown', () => {
+      isMouseDown = true;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isMouseDown = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isMouseDown = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Create drops more frequently on mouse movement
+      if (Math.random() < 0.3 || isMouseDown) {  // Increased probability
+        drops.push(new PaintDrop(x, y, true));
+        // Create additional smaller drops around the cursor
+        if (isMouseDown) {
+          for (let i = 0; i < 2; i++) {
+            drops.push(new PaintDrop(
+              x + (Math.random() - 0.5) * 40,
+              y + (Math.random() - 0.5) * 40,
+              true
+            ));
+          }
+        }
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      canvas.removeEventListener('mousedown', () => {});
+      canvas.removeEventListener('mouseup', () => {});
+      canvas.removeEventListener('mouseleave', () => {});
+      canvas.removeEventListener('mousemove', () => {});
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full h-screen overflow-hidden bg-white">
+      {/* Original animated waves */}
+      {[...Array(3)].map((_, i) => (
         <motion.div
           key={`wave-${i}`}
-          className="absolute w-[200%]"
+          className="absolute w-full opacity-5"
           style={{
-            height: '100px',
-            background: `linear-gradient(180deg, 
-              ${colors.oceanBlue}${90 - i * 20} 0%, 
-              ${colors.skyBlue}${80 - i * 20} 100%)`,
-            bottom: `${i * 60}px`,
-            left: '-50%',
+            height: '1px',
+            background: `linear-gradient(90deg, 
+              transparent 0%, 
+              #000 50%, 
+              transparent 100%)`,
+            top: `${30 + i * 20}%`,
           }}
           animate={{
-            x: [0, -100, 0],
+            x: [-2000, 2000],
+            opacity: [0.02, 0.05, 0.02],
           }}
           transition={{
-            duration: 8 + i,
+            duration: 8 + i * 2,
             repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.5,
+            ease: "linear",
           }}
         />
       ))}
 
-{/* Animated wave curves */}
-<motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 2 }}
-      >
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              background: 'none',
-              border: `8px solid ${Object.values(colors)[i % 5]}`,
-              borderRadius: '50%',
-              left: '30%',
-              top: '20%',
-              width: '140%',
-              height: '140%',
-              opacity: 0.6,
-            }}
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 10, -10, 0],
-              x: [0, 20, -20, 0],
-            }}
-            transition={{
-              duration: 8 + i,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.5,
-            }}
-          />
-        ))}
-      </motion.div>
-
-      {/* Floating bubbles */}
-      {[...Array(8)].map((_, i) => (
+      {/* Floating orbs */}
+      {[...Array(3)].map((_, i) => (
         <motion.div
-          key={`bubble-${i}`}
-          className="absolute rounded-full bg-white/30"
+          key={`orb-${i}`}
+          className="absolute rounded-full bg-gray-900/5"
           style={{
-            width: `${30 + i * 10}px`,
-            height: `${30 + i * 10}px`,
-            left: `${10 + i * 8}%`,
-            top: `${40 + i * 5}%`,
+            width: 100 + i * 50,
+            height: 100 + i * 50,
+            left: `${20 + i * 25}%`,
+            top: '10%',
           }}
           animate={{
             y: [-20, 20],
@@ -125,91 +227,55 @@ export const RetroWaveLanding = () => {
             scale: [1, 1.1, 1],
           }}
           transition={{
-            duration: 4 + i,
+            duration: 6 + i * 2,
             repeat: Infinity,
+            repeatType: "reverse",
             ease: "easeInOut",
-            delay: i * 0.2,
           }}
         />
       ))}
 
-      {/* Keeping your existing spinning shape but making it more sunset-colored
+      <canvas 
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full cursor-crosshair"
+      />
+      
       <motion.div 
-        className="absolute right-0 top-0 w-64 h-64"
-        style={{
-          background: colors.sunset,
-          borderRadius: '50% 0 50% 50%',
-        }}
-        animate={{
-          rotate: 360,
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      /> */}
+        className="relative z-10 flex flex-col items-center justify-center h-full text-center pointer-events-none"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+      >
+        <h1 className="text-6xl md:text-8xl font-light tracking-tight mb-4 text-gray-900">
+          LOST IN<br/>TROPEZ
+        </h1>
+        
+        <p className="text-xl md:text-2xl italic text-gray-600">
+          Took a wrong turn in Baja
+        </p>
 
-      {/* Your original content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+        <motion.div 
+          className="mt-12 flex space-x-8 pointer-events-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
         >
-          <h1 className="text-8xl font-bold mb-8 text-cream">
-            Lost in Tropez
-          </h1>
-          
-          <motion.div
-            className="flex space-x-8 mb-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            {['LISTEN', 'WATCH', 'EXPERIENCE'].map((text) => (
-              <motion.button
-                key={text}
-                className="px-8 py-3 rounded-full text-lg font-medium border-2 text-cream border-cream"
-                whileHover={{ 
-                  scale: 1.05,
-                  backgroundColor: colors.cream,
-                  color: colors.navy,
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                {text}
-              </motion.button>
-            ))}
-          </motion.div>
+          {['LISTEN', 'WATCH', 'EXPERIENCE'].map((text) => (
+            <motion.button
+              key={text}
+              className="px-6 py-2 border border-gray-400 text-gray-600 text-lg font-light
+                        hover:bg-gray-50 transition-colors"
+              whileHover={{ 
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {text}
+            </motion.button>
+          ))}
         </motion.div>
-      </div>
-
-      {/* Keeping your animated gradient lines but adjusting colors */}
-      {[...Array(3)].map((_, i) => (
-        <motion.div
-          key={`line-${i}`}
-          className="absolute left-0 h-px w-full"
-          style={{
-            background: `linear-gradient(90deg, 
-              transparent 0%, 
-              ${colors.cream} 50%, 
-              transparent 100%)`,
-            top: `${30 + i * 20}%`,
-          }}
-          animate={{
-            x: [-2000, 2000],
-            opacity: [0, 1, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            delay: i * 2,
-            ease: "linear",
-          }}
-        />
-      ))}
+      </motion.div>
     </div>
   );
 };

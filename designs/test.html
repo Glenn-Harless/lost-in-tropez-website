@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { 
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .section-indicator {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: right;
+            font-size: 2em;
+            opacity: 0.7;
+            transition: opacity 0.5s;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .menu {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            z-index: 100;
+        }
+        .menu a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .menu a:hover {
+            opacity: 1;
+        }
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <a href="#section1">SECTION 1</a>
+        <a href="#section2">SECTION 2</a>
+        <a href="#section3">SECTION 3</a>
+        <a href="#section4">SECTION 4</a>
+    </div>
+    <div class="sound-toggle">🔊</div>
+    <div class="section-indicator">PORTAL 1</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let camera, scene, renderer;
+        let tunnel, currentSection = 0;
+        let scrollPercent = 0;
+        const tunnelSegments = [];
+        const SECTIONS = ['PORTAL 1', 'DREAM SPACE', 'VOID REALM', 'FINAL DIMENSION'];
+
+        init();
+        animate();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Create tunnel segments
+            for(let i = 0; i < 4; i++) {
+                createTunnelSegment(i * 20);
+            }
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onScroll);
+            
+            // Initialize scroll height
+            document.body.style.height = '400vh';
+        }
+
+        function createTunnelSegment(zPosition) {
+            const geometry = new THREE.CylinderGeometry(3, 3, 20, 16, 20, true);
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 1.0 },
+                    sectionColor: { value: new THREE.Color(Math.random(), Math.random(), Math.random()) }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec3 sectionColor;
+                    varying vec2 vUv;
+                    void main() {
+                        vec2 position = vUv * 2.0 - 1.0;
+                        float angle = atan(position.y, position.x);
+                        float radius = length(position);
+                        
+                        float pattern = sin(angle * 8.0 + time) * 0.5 + 0.5;
+                        pattern *= sin(radius * 5.0 - time) * 0.5 + 0.5;
+                        
+                        vec3 color = sectionColor * pattern;
+                        gl_FragColor = vec4(color, 1.0);
+                    }
+                `,
+                side: THREE.BackSide
+            });
+
+            const segment = new THREE.Mesh(geometry, material);
+            segment.rotation.x = Math.PI / 2;
+            segment.position.z = zPosition;
+            
+            tunnelSegments.push(segment);
+            scene.add(segment);
+        }
+
+        function onScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - window.innerHeight;
+            scrollPercent = scrollTop / height;
+            
+            // Update section indicator
+            const sectionIndex = Math.floor(scrollPercent * 4);
+            if(sectionIndex !== currentSection && sectionIndex < SECTIONS.length) {
+                currentSection = sectionIndex;
+                document.querySelector('.section-indicator').textContent = SECTIONS[currentSection];
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+            
+            // Move camera through tunnel based on scroll
+            camera.position.z = -scrollPercent * 60;
+            
+            // Rotate and animate tunnel segments
+            tunnelSegments.forEach((segment, i) => {
+                segment.rotation.z = time * 0.2;
+                segment.material.uniforms.time.value = time;
+                
+                // Pulse colors based on section
+                const hue = (i / tunnelSegments.length + time * 0.1) % 1;
+                segment.material.uniforms.sectionColor.value.setHSL(hue, 0.5, 0.5);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // Sound toggle
+        document.querySelector('.sound-toggle').addEventListener('click', function() {
+            this.textContent = this.textContent === '🔊' ? '🔇' : '🔊';
+            // Add your sound logic here
+        });
+    </script>
+</body>
+</html>
