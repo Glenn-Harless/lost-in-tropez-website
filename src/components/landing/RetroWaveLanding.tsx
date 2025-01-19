@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export const SurrealistLanding = () => {
   const canvasRef = useRef(null);
   
-  // Refined color palette
+  // Updated color palette to include canvas colors
   const colors = {
     cream: '#F5E6D3',
     azure: '#48ABC9',
@@ -29,15 +29,13 @@ export const SurrealistLanding = () => {
       constructor(x, y, isHover = false) {
         this.x = x;
         this.y = y;
-        // Increased size for better visibility
-        this.size = isHover ? 25 : Math.random() *20 + 5;
+        this.size = isHover ? 25 : Math.random() * 20 + 5;
         this.maxSize = this.size * (isHover ? 8 : 4);
         this.color = Object.values(colors)[Math.floor(Math.random() * Object.values(colors).length)];
-        // Adjusted speeds for more noticeable movement
         this.speedY = isHover ? (Math.random() * 2 - 1) : -Math.random() * 0.3;
         this.speedX = isHover ? (Math.random() * 2 - 1) : (Math.random() - 0.5) * 0.5;
         this.age = 0;
-        this.maxAge = 300; // Reduced for quicker fade
+        this.maxAge = 300;
         this.rotation = Math.random() * Math.PI * 2;
         this.rotationSpeed = (Math.random() - 0.5) * 0.02;
         this.points = this.generateOrganic();
@@ -115,8 +113,8 @@ export const SurrealistLanding = () => {
     let drops = [];
 
     function animate() {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Make canvas completely transparent so background shows through
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       drops.forEach(drop => {
         drop.update();
@@ -158,10 +156,8 @@ export const SurrealistLanding = () => {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // Create drops more frequently on mouse movement
-      if (Math.random() < 0.3 || isMouseDown) {  // Increased probability
+      if (Math.random() < 0.3 || isMouseDown) {
         drops.push(new PaintDrop(x, y, true));
-        // Create additional smaller drops around the cursor
         if (isMouseDown) {
           for (let i = 0; i < 2; i++) {
             drops.push(new PaintDrop(
@@ -184,7 +180,44 @@ export const SurrealistLanding = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-white">
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Canvas texture background with overlay */}
+      <div className="absolute inset-0" style={{
+        backgroundColor: '#f7f6f2',
+        backgroundImage: `
+          repeating-linear-gradient(
+            -45deg,
+            rgba(0, 0, 0, 0.06) 0px,
+            rgba(0, 0, 0, 0.06) 1px,
+            transparent 1px,
+            transparent 2px
+          ),
+          repeating-linear-gradient(
+            45deg,
+            rgba(0, 0, 0, 0.06) 0px,
+            rgba(0, 0, 0, 0.06) 1px,
+            transparent 1px,
+            transparent 2px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(243, 242, 238, 0.8) 0px,
+            rgba(243, 242, 238, 0.8) 1px,
+            transparent 1px,
+            transparent 3px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(243, 242, 238, 0.8) 0px,
+            rgba(243, 242, 238, 0.8) 1px,
+            transparent 1px,
+            transparent 3px
+          )
+        `,
+        backgroundSize: '4px 4px, 4px 4px, 6px 6px, 6px 6px',
+        backgroundPosition: '0 0, 0 0, 1px 1px, 1px 1px'
+      }} />
+
       {/* Original animated waves */}
       {[...Array(3)].map((_, i) => (
         <motion.div
@@ -240,19 +273,37 @@ export const SurrealistLanding = () => {
         className="absolute inset-0 w-full h-full cursor-crosshair"
       />
       
+      {/* Import Google Fonts */}
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Cormorant+Garamond:ital@1&family=Italiana&family=Tenor+Sans&display=swap');
+        `}
+      </style>
+
       <motion.div 
         className="relative z-10 flex flex-col items-center justify-center h-full text-center pointer-events-none"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 2, ease: "easeOut" }}
       >
-        <h1 className="text-6xl md:text-8xl font-light tracking-tight mb-4 text-gray-900">
+        {/* Option 1: Marcellus with Cormorant Garamond */}
+        <h1 className="font-['Marcellus'] text-6xl md:text-8xl tracking-tight mb-4 text-gray-900 leading-tight">
           LOST IN<br/>TROPEZ
         </h1>
         
-        <p className="text-xl md:text-2xl italic text-gray-600">
+        <p className="font-['Cormorant_Garamond'] text-xl md:text-2xl italic text-gray-600">
           Took a wrong turn in Baja
         </p>
+
+        {/* Option 2: Comment out Option 1 and uncomment this for Italiana with Tenor Sans
+        <h1 className="font-['Italiana'] text-6xl md:text-8xl tracking-tight mb-4 text-gray-900 leading-tight">
+          LOST IN<br/>TROPEZ
+        </h1>
+        
+        <p className="font-['Tenor_Sans'] text-xl md:text-2xl text-gray-600">
+          Took a wrong turn in Baja
+        </p>
+        */}
 
         <motion.div 
           className="mt-12 flex space-x-8 pointer-events-auto"
