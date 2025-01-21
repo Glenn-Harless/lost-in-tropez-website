@@ -247,17 +247,25 @@ export const SurrealistLanding = () => {
       {[...Array(3)].map((_, i) => (
         <motion.div
           key={`orb-${i}`}
-          className="absolute rounded-full bg-gray-900/5"
+          className="absolute rounded-full backdrop-blur-sm"
           style={{
             width: 100 + i * 50,
             height: 100 + i * 50,
             left: `${20 + i * 25}%`,
             top: '10%',
+            background: i === 0 
+              ? 'radial-gradient(circle at 30% 30%, #FF6B6B, #4ECDC4)'
+              : i === 1
+              ? 'radial-gradient(circle at 40% 40%, #FFE66D, #FF6B6B, #4ECDC4)'
+              : 'radial-gradient(circle at 50% 50%, #A9E4EF, #81F5FF, #7A89FF)',
+            opacity: 0.6,
+            mixBlendMode: 'multiply'
           }}
           animate={{
             y: [-20, 20],
             x: [-10, 10],
             scale: [1, 1.1, 1],
+            rotate: [0, 180]
           }}
           transition={{
             duration: 6 + i * 2,
@@ -291,9 +299,9 @@ export const SurrealistLanding = () => {
           LOST IN<br/>TROPEZ
         </h1>
         
-        <p className="font-['Cormorant_Garamond'] text-xl md:text-2xl italic text-gray-600">
+        {/* <p className="font-['Cormorant_Garamond'] text-xl md:text-2xl italic text-gray-600">
           Took a wrong turn in Baja
-        </p>
+        </p> */}
 
         {/* Option 2: Comment out Option 1 and uncomment this for Italiana with Tenor Sans
         <h1 className="font-['Italiana'] text-6xl md:text-8xl tracking-tight mb-4 text-gray-900 leading-tight">
@@ -330,3 +338,4 @@ export const SurrealistLanding = () => {
     </div>
   );
 };
+
