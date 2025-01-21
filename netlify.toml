@@ -1,7 +1,6 @@
 [build]
-  command = "docker build -t app -f Dockerfile.prod . && docker run --rm app npm run build"
+  command = "npm run build"
   publish = "dist"
 
 [context.production.environment]
   NODE_VERSION = "20"
-  DOCKER_ENABLED = "true"
