@@ -338,7 +338,7 @@ export const SurrealistLanding: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          {['LISTEN', 'WATCH', 'EXPERIENCE'].map((text) => (
+          {['LISTEN', 'ABOUT'].map((text) => (
             <motion.button
               key={text}
               className="px-6 py-2 border border-gray-400 text-gray-600 text-lg font-light
