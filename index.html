@@ -6,6 +6,12 @@
     <title>Lost in Tropez</title>
   </head>
   <body class="h-full w-full m-0 p-0">
+    <!-- Hidden form for Netlify -->
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input type="email" name="email" />
+      <textarea name="message"></textarea>
+    </form>
+    
     <div id="root" class="h-full w-full"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
