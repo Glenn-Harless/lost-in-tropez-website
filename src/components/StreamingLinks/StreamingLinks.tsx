@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 // Platform interface
@@ -93,7 +93,7 @@ const StreamingLinks = () => {
   // Animation variants
   const lineVariants = {
     hidden: { pathLength: 0, opacity: 0 },
-    visible: (custom) => ({ 
+    visible: (custom: number) => ({ 
       pathLength: 1, 
       opacity: 1,
       transition: { 
@@ -110,7 +110,7 @@ const StreamingLinks = () => {
   
   const nodeVariants = {
     hidden: { scale: 0, opacity: 0 },
-    visible: (custom) => ({ 
+    visible: (custom: number) => ({ 
       scale: 1, 
       opacity: 1,
       transition: { 
