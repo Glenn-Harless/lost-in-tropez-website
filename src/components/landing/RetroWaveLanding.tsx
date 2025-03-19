@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
+interface SurrealistLandingProps {
+  onAboutClick?: () => void;
+  onListenClick?: () => void;
+}
+
 interface Point {
   angle: number;
   variance: number;
@@ -40,10 +45,10 @@ class PaintDrop {
     this.size = isHover ? 25 : Math.random() * 20 + 5;
     this.maxSize = this.size * (isHover ? 8 : 4);
     this.color = Object.values(colors)[Math.floor(Math.random() * Object.values(colors).length)];
-    this.speedY = isHover ? (Math.random() * 2 - 1) : -Math.random() * 0.3;
-    this.speedX = isHover ? (Math.random() * 2 - 1) : (Math.random() - 0.5) * 0.5;
+    this.speedY = isHover ? (Math.random() * 3.5 - 1) : -Math.random() * 0.3;
+    this.speedX = isHover ? (Math.random() * 3.5 - 1) : (Math.random() - 0.5) * 0.5;
     this.age = 0;
-    this.maxAge = 300;
+    this.maxAge = 200;
     this.rotation = Math.random() * Math.PI * 2;
     this.rotationSpeed = (Math.random() - 0.5) * 0.02;
     this.points = this.generateOrganic();
@@ -69,7 +74,7 @@ class PaintDrop {
   update(): void {
     this.age++;
     this.time += 0.03;
-    this.size = Math.min(this.size * 1.02, this.maxSize);
+    this.size = Math.min(this.size * 1.09, this.maxSize);
     this.x += this.speedX + Math.sin(this.time) * this.wobble;
     this.y += this.speedY;
     this.rotation += this.rotationSpeed;
@@ -118,7 +123,10 @@ class PaintDrop {
   }
 }
 
-export const SurrealistLanding: React.FC = () => {
+export const SurrealistLanding: React.FC<SurrealistLandingProps> = ({ 
+  onAboutClick, 
+  onListenClick 
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -151,7 +159,7 @@ export const SurrealistLanding: React.FC = () => {
 
       drops = drops.filter(drop => !drop.isDead());
 
-      if (Math.random() < 0.03) {
+      if (Math.random() < 0.07) {
         drops.push(new PaintDrop(
           Math.random() * canvas.width,
           canvas.height + 20
@@ -183,7 +191,7 @@ export const SurrealistLanding: React.FC = () => {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      if (Math.random() < 0.3 || isMouseDown) {
+      if (Math.random() < 0.7 || isMouseDown) {
         drops.push(new PaintDrop(x, y, true));
         if (isMouseDown) {
           for (let i = 0; i < 2; i++) {
@@ -338,20 +346,31 @@ export const SurrealistLanding: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          {['LISTEN', 'ABOUT'].map((text) => (
-            <motion.button
-              key={text}
-              className="px-6 py-2 border border-gray-400 text-gray-600 text-lg font-light
-                        hover:bg-gray-50 transition-colors"
-              whileHover={{ 
-                scale: 1.02,
-                transition: { duration: 0.3 }
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {text}
-            </motion.button>
-          ))}
+          <motion.button
+            onClick={onListenClick}
+            className="px-6 py-2 border border-gray-400 text-gray-600 text-lg font-light
+                      hover:bg-gray-50 transition-colors"
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.3 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            LISTEN
+          </motion.button>
+          
+          <motion.button
+            onClick={onAboutClick}
+            className="px-6 py-2 border border-gray-400 text-gray-600 text-lg font-light
+                      hover:bg-gray-50 transition-colors"
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.3 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            ABOUT
+          </motion.button>
         </motion.div>
       </motion.div>
     </div>
