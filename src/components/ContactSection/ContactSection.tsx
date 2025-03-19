@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ContactSection = () => {
@@ -17,7 +17,7 @@ const ContactSection = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Submit form data to Netlify
@@ -48,7 +48,7 @@ const ContactSection = () => {
   // Animation variants
   const lineVariants = {
     hidden: { pathLength: 0, opacity: 0 },
-    visible: (custom) => ({ 
+    visible: (custom: number) => ({ 
       pathLength: 1, 
       opacity: 1,
       transition: { 
@@ -66,7 +66,7 @@ const ContactSection = () => {
   // Animation variants for floating elements
   const floatingVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: (custom) => ({
+    visible: (custom: number) => ({
       opacity: 1,
       y: 0,
       transition: {

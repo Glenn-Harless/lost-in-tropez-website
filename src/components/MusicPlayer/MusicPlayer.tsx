@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -7,7 +7,6 @@ const MusicPlayer = () => {
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [activeElement, setActiveElement] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   
@@ -143,27 +142,6 @@ const MusicPlayer = () => {
     setIsDragging(true);
   };
 
-  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    let clientX;
-    if ('clientX' in e) {
-      clientX = e.clientX; // Mouse event
-    } else {
-      clientX = e.touches[0].clientX; // Touch event
-    }
-    
-    const newProgress = calculateProgress(clientX);
-    setProgress(newProgress);
-  };
-
-  const handleDragEnd = () => {
-    if (isDragging) {
-      updateAudioPosition(progress);
-      setIsDragging(false);
-    }
-  };
-
   // Add mouse move and mouse up listeners to window for smooth dragging
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -228,7 +206,7 @@ const MusicPlayer = () => {
   // Animation variants for SVG paths
   const lineVariants = {
     hidden: { pathLength: 0, opacity: 0 },
-    visible: (custom) => ({ 
+    visible: (custom: number) => ({ 
       pathLength: 1, 
       opacity: 1,
       transition: { 

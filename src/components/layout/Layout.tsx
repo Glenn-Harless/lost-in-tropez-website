@@ -1,5 +1,5 @@
-import React, { ReactNode, useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { ReactNode, useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 interface Point {
   angle: number;
@@ -124,7 +124,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
 
   // Check if mobile on mount
   useEffect(() => {
