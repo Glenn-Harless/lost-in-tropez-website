@@ -13,6 +13,12 @@ const MusicPlayer = () => {
   // Tracks using local audio files (place MP3s in your public folder)
   const tracks = [
     {
+      title: "Beneath",
+      file: "/audio/beneath.m4a", // Path relative to public folder
+      duration: "3:45",
+      coverArt: "/images/release_junak.png" // Optional
+    },
+    {
       title: "Lag",
       file: "/audio/lag_final.mp3", // Path relative to public folder
       duration: "3:45",
