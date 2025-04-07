@@ -14,7 +14,7 @@ const MusicPlayer = () => {
   const tracks = [
     {
       title: "Beneath",
-      file: "/audio/beneath.m4a", // Path relative to public folder
+      file: "/audio/beneath.mp3", // Path relative to public folder
       duration: "3:45",
       coverArt: "/images/release_junak.png" // Optional
     },
