@@ -1,0 +1,146 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { getReleases, pigments, year, spotifyUrl, outDate, ARTIST, type Release } from '../lib/releases';
+
+export async function getStaticPaths() {
+  const releases = await getReleases();
+  return releases.map((r) => ({ params: { slug: r.id }, props: { r } }));
+}
+
+const { r } = Astro.props as { r: Release };
+const { title, kind, date, cover, spotify, appleMusic, soundcloud, preview } = r.data;
+const colors = await pigments(r);
+const og = await getImage({ src: cover, width: 1200, format: 'jpg', quality: 84 });
+const out = spotifyUrl(r);
+
+const services = [
+  appleMusic && ['Apple Music', appleMusic, 'apple_music'],
+  soundcloud && ['SoundCloud', soundcloud, 'soundcloud'],
+].filter(Boolean) as string[][];
+const list = [out && 'Spotify', ...services.map((s) => s[0])].filter(Boolean) as string[];
+const names = list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0];
+const description = out
+  ? `Listen to ${title} by Lost in Tropez on ${names}.`
+  : `${title} by Lost in Tropez, out ${outDate(r)}.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': kind === 'EP' ? 'MusicAlbum' : 'MusicRecording',
+  name: title,
+  byArtist: { '@type': 'MusicGroup', name: 'Lost in Tropez', url: Astro.site },
+  datePublished: date.toISOString().slice(0, 10),
+  image: new URL(og.src, Astro.site),
+  url: new URL(Astro.url.pathname, Astro.site),
+};
+---
+<Base title={`${title} · Lost in Tropez`} {description} image={og.src} {jsonLd} ogType={kind === 'EP' ? 'music.album' : 'music.song'}>
+  <main
+    class="page"
+    data-release={r.id}
+    data-title={title}
+    data-pigments={JSON.stringify(colors)}
+    data-spotify={spotify ?? ''}
+    data-state={out ? 'live' : 'upcoming'}
+  >
+    <p class="who">Lost in Tropez</p>
+    <div class="art">
+      <Image id="cover" src={cover} alt={`${title} cover`} widths={[480, 800, 1200]} sizes="(min-width: 900px) 44vw, 84vw" format="webp" quality={82} loading="eager" fetchpriority="high" />
+      {preview && (
+        <button class="preview" id="preview" aria-label="Play 30-second preview">
+          <svg class="ring" viewBox="0 0 74 74" aria-hidden="true"><circle class="track" cx="37" cy="37" r="34" /><circle class="fill" cx="37" cy="37" r="34" /></svg>
+          <svg id="iconPlay" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5l15 8.5-15 8.5z" /></svg>
+          <svg id="iconPause" class="hide" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zm8 0h4v16h-4z" /></svg>
+        </button>
+      )}
+    </div>
+    <div class="side">
+      <div class="text">
+        <h1>{title}</h1>
+        <p class="meta">{out ? `${kind}, ${year(r)}` : `Out ${outDate(r)}`}</p>
+      </div>
+      <div class="actions">
+        <a class="cta" id="cta" data-platform="spotify" href={out ?? ARTIST.spotify} rel="noopener">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1.5a10.5 10.5 0 1 0 0 21 10.5 10.5 0 0 0 0-21zm4.8 15.15a.65.65 0 0 1-.9.22c-2.46-1.5-5.56-1.84-9.2-1.01a.65.65 0 1 1-.3-1.27c3.99-.91 7.41-.52 10.18 1.17.3.19.4.59.22.89zm1.28-2.86a.82.82 0 0 1-1.12.27c-2.82-1.73-7.12-2.23-10.45-1.22a.82.82 0 1 1-.48-1.56c3.8-1.15 8.53-.59 11.77 1.39.38.24.5.74.28 1.12zm.11-2.98C14.8 8.8 9.2 8.61 5.96 9.6a.98.98 0 1 1-.57-1.88c3.72-1.13 9.9-.91 13.8 1.4a.98.98 0 0 1-1 1.69z" /></svg>
+          <span>{out ? 'Play on Spotify' : 'Follow on Spotify'}</span>
+        </a>
+        {services.length > 0 && (
+          <div class="more">
+            {services.map(([name, url, platform]) => (
+              <a href={url} rel="noopener" data-platform={platform}>{name}</a>
+            ))}
+          </div>
+        )}
+      </div>
+      <p class="fine"><a href="/">More from Lost in Tropez</a><span aria-hidden="true"> · </span><a href="/privacy/">Privacy</a></p>
+    </div>
+    {preview && <audio id="audio" preload="none" src={preview}></audio>}
+  </main>
+
+  <div class="consent" id="consent" hidden>
+    <p>This page uses Meta's pixel to measure our ads. <a href="/privacy/">Privacy</a></p>
+    <div>
+      <button id="consent-no">No thanks</button>
+      <button id="consent-yes">Allow</button>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/release.js';
+</script>
+
+<style is:global>
+  body { font-size: 16px; line-height: 1.45; }
+
+  /* One screen, one job. Everything fits above the fold on a small phone. */
+  .page {
+    --cover: min(84vw, 45svh);
+    min-height: 100svh; display: grid; justify-items: center; align-content: center; gap: clamp(12px, 2.2svh, 20px);
+    padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+  }
+  .who { margin: 0; font: 400 15px/1 Marcellus, serif; letter-spacing: .2em; text-transform: uppercase; mix-blend-mode: multiply; }
+  .art { position: relative; width: var(--cover); height: var(--cover); margin-bottom: 8px; }
+  .art img { display: block; width: 100%; height: 100%; object-fit: cover; box-shadow: 0 1px 2px rgba(29, 21, 33, .3), 0 30px 50px -26px rgba(29, 21, 33, .6); }
+  .preview {
+    position: absolute; right: -10px; bottom: -14px; width: 74px; height: 74px; border-radius: 50%; border: 0; padding: 0;
+    background: var(--ink); color: var(--paper); cursor: pointer; display: grid; place-items: center;
+    box-shadow: 0 10px 22px -10px rgba(29, 21, 33, .7);
+  }
+  .preview svg.ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .preview .track { fill: none; stroke: rgba(245, 239, 226, .22); stroke-width: 2.5; }
+  .preview .fill { fill: none; stroke: var(--paper); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 213.6; stroke-dashoffset: calc(213.6 * (1 - var(--p, 0))); }
+  .side { display: contents; }
+  .text { width: min(84vw, 440px); text-align: center; }
+  h1 { margin: 0; font: 400 clamp(40px, 11.5vw, 60px)/1.02 Marcellus, serif; mix-blend-mode: multiply; }
+  .meta { margin: 4px 0 0; color: var(--ink-2); }
+  .actions { width: min(84vw, 440px); display: grid; gap: 12px; }
+  .cta {
+    display: flex; align-items: center; justify-content: center; gap: 10px; height: 60px; background: var(--ink); color: var(--paper);
+    text-decoration: none; font: 500 18px Jost, sans-serif;
+  }
+  .more { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 18px; font-size: 15px; }
+  .more a { padding: 9px 2px; text-underline-offset: 4px; }
+  .fine { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+
+  @media (min-width: 900px) {
+    .page { --cover: min(44vw, 74svh); grid-template-columns: auto minmax(320px, 440px); column-gap: clamp(40px, 7vw, 110px); align-content: center; justify-content: center; justify-items: start; }
+    .who { grid-column: 1 / -1; justify-self: center; margin-bottom: 18px; }
+    .side { display: flex; flex-direction: column; gap: 18px; justify-content: center; align-self: center; width: 100%; }
+    .text { text-align: left; width: 100%; }
+    h1 { font-size: clamp(56px, 6vw, 92px); }
+    .actions { width: 100%; }
+    .more { justify-content: flex-start; }
+  }
+
+  .consent {
+    position: fixed; inset: auto 0 0; z-index: 9; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 18px;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: var(--paper); border-top: 1px solid var(--rule); font-size: 14px;
+  }
+  .consent[hidden] { display: none; }
+  .consent p { margin: 0; }
+  .consent div { display: flex; gap: 8px; }
+  .consent button { font: 500 14px Jost, sans-serif; padding: 9px 18px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+
+  .debug { position: fixed; left: 8px; top: 8px; right: 8px; z-index: 10; max-height: 46vh; overflow: auto; padding: 10px; background: var(--ink); color: var(--paper); font: 12px/1.4 ui-monospace, Menlo, monospace; word-break: break-all; }
+</style>

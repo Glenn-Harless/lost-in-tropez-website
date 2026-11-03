@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Privacy · Lost in Tropez" description="What this site collects and why.">
+  <main class="plain">
+    <p class="back"><a href="/">Lost in Tropez</a></p>
+    <h1>Privacy</h1>
+    <p class="updated">Last updated 2 November 2026</p>
+
+    <h2>Contact form</h2>
+    <p>If you send a message, we receive your email address and what you wrote. It's stored by our host, Netlify. We use it to reply to you.</p>
+
+    <h2>Meta pixel</h2>
+    <p>Release pages can use Meta's pixel, so we can measure our ads on Facebook and Instagram and show them to people likely to enjoy the music. It records that you viewed a page, played a preview, or tapped a link to a streaming service, and shares that with Meta along with cookies and browser details Meta uses to match it to you. Meta's own <a href="https://www.facebook.com/privacy/policy/" rel="noopener">privacy policy</a> covers what it does with that data.</p>
+    <p>In the EU, the UK and Switzerland the pixel only loads if you allow it. It doesn't load if your browser sends a Global Privacy Control signal. You can also manage ad choices in your <a href="https://www.facebook.com/adpreferences/" rel="noopener">Meta ad preferences</a>.</p>
+    <p><button id="reset" type="button">Reset my choice on this device</button> <span id="reset-done" role="status"></span></p>
+
+    <h2>Everything else</h2>
+    <p>This site has no other analytics. Fonts and images are served from this site. Links to Spotify and other services take you to those services, which have their own policies.</p>
+
+    <h2>Questions</h2>
+    <p>Use the <a href="/#contact">contact form</a>, including to ask us to delete a message you sent.</p>
+  </main>
+</Base>
+
+<script>
+  import { createPaint } from '../scripts/paint.js';
+
+  const paint = (() => { try { return createPaint(document.getElementById('paint'), { ambient: 0.3 }); } catch { return null; } })();
+  if (!paint) document.documentElement.classList.add('no-gl');
+  document.getElementById('reset')?.addEventListener('click', () => {
+    try { localStorage.removeItem('ltz_pixel_choice'); } catch { /* private mode */ }
+    document.getElementById('reset-done')!.textContent = 'Done.';
+  });
+</script>
+
+<style is:global>
+  .plain { max-width: 40em; margin: 0 auto; padding: 40px var(--gutter) 80px; }
+  .plain .back { margin: 0 0 40px; font: 400 15px/1 Marcellus, serif; letter-spacing: .2em; text-transform: uppercase; }
+  .plain .back a { text-decoration: none; }
+  .plain h1 { margin: 0; font: 400 clamp(44px, 8vw, 76px)/1 Marcellus, serif; mix-blend-mode: multiply; }
+  .plain .updated { margin: 8px 0 32px; color: var(--ink-2); font-size: 15px; }
+  .plain h2 { margin: 32px 0 6px; font: 400 26px/1.2 Marcellus, serif; }
+  .plain p { margin: 0 0 12px; }
+  .plain button { font: 500 14px Jost, sans-serif; padding: 9px 16px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+</style>
