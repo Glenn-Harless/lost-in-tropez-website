@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found · Lost in Tropez" description="This page doesn't exist." noindex>
+  <main class="note">
+    <h1>Took a wrong turn.</h1>
+    <p><a href="/">Back to Lost in Tropez</a></p>
+  </main>
+</Base>
+
+<script>
+  import { createPaint } from '../scripts/paint.js';
+
+  const paint = (() => { try { return createPaint(document.getElementById('paint'), { ambient: 0.5 }); } catch { return null; } })();
+  if (!paint) document.documentElement.classList.add('no-gl');
+</script>
+
+<style is:global>
+  .note { min-height: 100svh; display: grid; align-content: center; justify-items: center; text-align: center; padding: 24px var(--gutter); }
+  .note h1 { margin: 0 0 8px; font: 400 clamp(36px, 7vw, 72px)/1.05 Marcellus, serif; mix-blend-mode: multiply; }
+  .note p { margin: 0 0 8px; }
+</style>
